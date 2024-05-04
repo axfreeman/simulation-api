@@ -1,0 +1,20 @@
+[
+	{
+		"username": "admin",
+		"password": "$2b$12$AXSho2eD.e2UaYD5KDLFK.o6oN/aGGJm2nr4nwzoHMg1G0uSAY./G",
+		"current_simulation_id": 0,
+		"api_key": "adminkey"
+	},
+	{
+		"username": "guest",
+		"password": "$2b$12$eb9ZNJIUppQl2hOhGVliGOZ2VID5Ba7XvfEKwg4FNicdqTj84MsgC",
+		"current_simulation_id": 0,
+		"api_key": "guestkey"
+	},
+	{
+		"username": "alan",
+		"password": "$2b$12$3il5Q8FLi4PsmQjzzPaHo.Ig05xAujHDlPAuRch5Pi5CpDYjcpB4i",
+		"current_simulation_id": 0,
+		"api_key": "alankey"
+	}
+]
