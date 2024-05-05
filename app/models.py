@@ -3,11 +3,10 @@ the system, except for the User model which is in authorization.py.
 """
 
 import typing
-from fastapi import Depends
+from fastapi import Depends, HTTPException
 from sqlalchemy import Column, ForeignKey, Integer, String, Float, Boolean
 from sqlalchemy.orm import relationship, Session
 from .database import Base, get_session
-from .authorization.auth import auth_handler
 
 
 Industry_stock = typing.NewType("Industry_stock", None)
@@ -77,22 +76,16 @@ class User(Base):
     username = Column(String, nullable=False, primary_key=True)
     password =  Column(String)
     current_simulation_id = Column(Integer, nullable=False, default=0)
-    is_logged_in=Column(Boolean, default=False)
     api_key = Column (String)
 
     def current_simulation(self,session:Session)->Simulation:
-        return session.query(Simulation).where (Simulation.id==self.current_simulation_id)
-
-def get_current_user(username:str, session:Session=Depends(get_session))->User:
-    """Retrieve the User object named 'username'.
-    
-        Return the User object if in the database
-
-        Return None if not
-    """
-    return session.query(User).where(User.username == username).first()
-
-
+        """Return this user's current simulation.
+            Raise 404 exception if it does not exist
+        """
+        simulation= session.query(Simulation).where (Simulation.id==self.current_simulation_id).first()
+        if simulation is None:
+            raise HTTPException(status_code=404,detail=f"User {self.username} has no current simulation")
+        return simulation
 
 class Commodity(Base):
     """

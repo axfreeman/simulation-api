@@ -8,18 +8,14 @@ class ServerMessage(BaseModel):
     message:str
     statusCode:http.HTTPStatus
 
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-class ServerMessage(BaseModel):
+class CloneMessage(BaseModel):
     message:str
     statusCode:http.HTTPStatus
+    simulation_id:int
 
 class UserBase(BaseModel):
     username: str
     current_simulation_id: int
-    is_logged_in:bool
     api_key:str
     
 class SimulationBase(BaseModel):
