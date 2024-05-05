@@ -1,10 +1,8 @@
 from fastapi import Depends, APIRouter, Security, status
 from sqlalchemy.orm import Session
-
 from app.schemas import ServerMessage
 from app.simulation.consumption import consume
-from ..authorization.auth import auth_handler
-
+from ..authorization.auth import get_api_key
 from ..logging import report
 from ..simulation.reload import reload_table
 from ..database import get_session
@@ -27,7 +25,6 @@ from ..models import (
     Commodity,
     Trace,
     User,
-    get_current_user,
 )
 from ..simulation.utils import calculate_current_capitals, revalue_stocks, revalue_commodities
 
@@ -35,8 +32,9 @@ router = APIRouter(prefix="/action", tags=["Actions"])
 
 @router.get("/demand",response_model=ServerMessage)
 def demandHandler(
+    u:User=Security(get_api_key),    
     session: Session = Depends(get_session),
-    username=Depends(auth_handler.auth_wrapper)    
+
 )->str:
 
     """Handles calls to the 'Demand' action. Sets demand, then resets 
@@ -45,7 +43,6 @@ def demandHandler(
         If there is no current simulation, returns None
         Otherwise, return success message
     """
-    u:User=get_current_user(username,session)
     try:
         simulation:Simulation=u.current_simulation(session)
         initialise_demand(session, simulation)
@@ -60,8 +57,8 @@ def demandHandler(
 
 @router.get("/supply",response_model=ServerMessage)
 def supplyHandler(
+    u:User=Security(get_api_key),    
     session: Session = Depends(get_session),
-    username=Depends(auth_handler.auth_wrapper)    
 )->str:
     """Handles calls to the 'Supply' action. Sets supply, then resets 
     simulation state to the next in the circuit.
@@ -69,9 +66,8 @@ def supplyHandler(
         If there is no current simulation, returns None
         Otherwise, return success message
     """
-    u:User=get_current_user(username,session)
     try:
-        simulation:Simulation=u.get_current_simulation(session)
+        simulation:Simulation=u.current_simulation(session)
         initialise_supply(session, simulation)
         industry_supply(session, simulation)  # tell industries to register their supply
         class_supply(session, simulation)  # tell classes to register their supply 
@@ -86,8 +82,8 @@ def supplyHandler(
 
 @router.get("/trade",response_model=ServerMessage)
 def tradeHandler(
+    u:User=Security(get_api_key),    
     session: Session = Depends(get_session),
-    username=Depends(auth_handler.auth_wrapper)    
 )->str:
     """
     Handles calls to the 'Trade' action. Allocates supply, conducts 
@@ -96,9 +92,8 @@ def tradeHandler(
         If there is no current simulation, returns None
         Otherwise, return success message
     """
-    u=get_current_user(username,session)
     try:
-        simulation:Simulation=u.get_current_simulation(session)
+        simulation:Simulation=u.current_simulation(session)
         constrain_demand(session, simulation)
         buy_and_sell(session, simulation)
         simulation.set_state("PRODUCE",session) # set the next state in the circuit, obliging the user to do this next.
@@ -113,8 +108,8 @@ def tradeHandler(
 
 @router.get("/produce",response_model=ServerMessage)
 def produceHandler(
+    u:User=Security(get_api_key),    
     session: Session = Depends(get_session),
-    username=Depends(auth_handler.auth_wrapper)    
 )->str:
     """
     Handles calls to the 'Produce' action then resets simulation state
@@ -124,9 +119,8 @@ def produceHandler(
         Otherwise, return success message
     """
 
-    u:User=get_current_user(username,session)
     try:
-        simulation:Simulation=u.get_current_simulation(session)
+        simulation:Simulation=u.current_simulation(session)
         produce(session, simulation)
         simulation.set_state("CONSUME",session) # set the next state in the circuit, obliging the user to do this next.
     except Exception as e:
@@ -139,8 +133,8 @@ def produceHandler(
 
 @router.get("/consume",response_model=ServerMessage)
 def consumeHandler(
+    u:User=Security(get_api_key),    
     session: Session = Depends(get_session),
-    username=Depends(auth_handler.auth_wrapper)    
 )->str:
     """
     Handles calls to the 'Consume' action then resets simulation state
@@ -152,9 +146,8 @@ def consumeHandler(
         Otherwise, return success message
     """
 
-    u:User=get_current_user(username,session)
     try:
-        simulation:Simulation=u.get_current_simulation(session)
+        simulation:Simulation=u.current_simulation(session)
         consume(session, simulation)
         simulation.set_state("INVEST",session) # set the next state in the circuit, obliging the user to do this next.
 
@@ -170,8 +163,8 @@ def consumeHandler(
 
 @router.get("/invest",response_model=ServerMessage)
 def investHandler(
+    u:User=Security(get_api_key),    
     session: Session = Depends(get_session),
-    username=Depends(auth_handler.auth_wrapper)    
 )->str:
     """Handles calls to the 'Invest' action then resets simulation state
     to restart the next circuit.
@@ -191,9 +184,8 @@ def investHandler(
         If there is no current simulation, returns None
         Otherwise, return success message
     """
-    u:User=get_current_user(username,session)
     try:
-        simulation:Simulation=u.get_current_simulation(session)
+        simulation:Simulation=u.current_simulation(session)
         invest(simulation,session)
         simulation.set_state("DEMAND",session) # set the next state in the circuit, obliging the user to do this next.
     except Exception as e:
@@ -203,10 +195,10 @@ def investHandler(
 @router.get("/reset")
 def get_json(session: Session = Depends(get_session)):
     """
-    Reloads all tables in the simulation from json fixtures
-    Logs out all users and sets their current simulation to 0
+    Reloads all tables in the simulation from json fixtures.  
+    Logs out all users and sets their current simulation to 0.  
     TODO this action should only be available to the admin 
-    TODO since it reinitialises everything
+    since it reinitialises everything.
     """
     report(1,1,"RESETTING ENTIRE DATABASE",session)
     reload_table(session, Simulation, "static/simulations.json", True, 1)

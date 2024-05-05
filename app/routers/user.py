@@ -1,29 +1,25 @@
-"""This module provides the endpoints for user management.
-TODO clone functions and endpoints perhaps belong in a separate module."""
+"""This module provides the endpoint for a user to clone a model."""
 
-from typing import List
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Security, status
 from app.database import get_session
 from app.logging import report
-from app.schemas import ServerMessage, UserBase
+from app.schemas import CloneMessage, ServerMessage
 from app.simulation.reload import initialise_buyers_and_sellers
 from app.simulation.utils import calculate_current_capitals, calculate_initial_capitals, revalue_commodities, revalue_stocks
-from ..authorization.auth import auth_handler
-from ..models import Class_stock, Commodity, Industry, Industry_stock, SocialClass, Simulation, User, get_current_user
+from ..authorization.auth import get_api_key
+from ..models import Class_stock, Commodity, Industry, Industry_stock, SocialClass, Simulation, User
 
 from sqlalchemy.orm import Session
 
-router = APIRouter(prefix="/users", tags=["User"])
+router = APIRouter(prefix="/clone", tags=["Clone"])
 
 def clone_model(model, session: Session, **kwargs):
     """Clone an arbitrary sqlalchemy model object without its 
-    primary key values.
+    primary key values. These primary keys are then added by the caller.  
 
-    These primary keys are then added by the caller.
+        Returns the clone unless the call is illegal (eg null model).
 
-    Returns the clone unless the call is illegal (eg null model).
-
-    Returns None if it can't be done
+        Returns None if it can't be done
     """
     try:
         table = model.__table__
@@ -39,24 +35,22 @@ def clone_model(model, session: Session, **kwargs):
     except:
         return None
 
-@router.get("/clone/{id}",response_model=ServerMessage)
+@router.get("/{id}",response_model=CloneMessage)
 def create_simulation_from_template(
     id: str,
+    u: User = Security(get_api_key),
     session: Session = Depends(get_session),
-    username:str = Depends(auth_handler.auth_wrapper)
 )->str:
-    """Create a complete cloned simulation of the template defined by 'id'.
+    """Create a complete cloned simulation of the template defined by 'id'.  
+    
+    Parameters:  
+    
+        id: id of the template to clone.  
+        api_key: api_key issued to the user of the cloned simulation.  
+        session: an sqlAlchemy session.  
 
-        id: id of the template to clone.
-
-        username: name of the user of the cloned simulation.
-
-        session: an sqlAlchemy session.
-
-        return: message indicating success or failure.
+        return:  a message, httpStatus, id of the new simulation if successful.
     """
-    u:User=get_current_user(username,session)
-
     template = session.query(Simulation).filter(Simulation.id == int(id)).first()
     new_simulation = clone_model(template, session)
     if new_simulation is None:
@@ -84,7 +78,6 @@ def create_simulation_from_template(
         session.commit()
 
     # Clone all industries in this simulation
-
     industries = session.query(Industry).filter(Industry.simulation_id == template.id)
     for industry in industries:
         report(2,1,f"Cloning industry {industry.name}",session)
@@ -166,29 +159,9 @@ def create_simulation_from_template(
     calculate_initial_capitals(session,new_simulation)
     calculate_current_capitals(session,new_simulation)
     message=f"Cloned Template with id {id} into simulation with id {new_simulation.id}"
-    # return {'message': "Cloning worked"}
-    return {"message":message,"statusCode":status.HTTP_200_OK}
+    return {
+        "message":message,
+        "statusCode":status.HTTP_200_OK, 
+        "simulation_id":new_simulation.id
+        }
 
-@router.get("/",response_model=List[UserBase])
-def get_users(session: Session = Depends(get_session)):
-    """Return all users.
-
-    Unprotected for now, for simplicity.
-
-    Later, protect it and restrict access to the admin user.
-    """
-    users = session.query(User).all()
-    return users
-
-@router.get("/{username}",response_model=UserBase)
-def get_user(username: str, session: Session = Depends(get_session)):
-
-    """Return the user object for the user called. 
-
-    Unprotected for now, for simplicity.
-
-    Later, protect it and restrict access to the admin user
-    """
-
-    user = session.query(User).filter(User.username == username).first()
-    return user

@@ -14,11 +14,13 @@ from sqlalchemy.orm import Session
 
 def report(level, simulation_id, message, db: Session):
     """
-    Prints a message on the terminal (or other output if designated) AND
-    exports it to the Trace database which makes it available to the user
+    Prints a message on the terminal (or other output if designated).  
+    Exports it to the Trace database.  
 
-    the parameter simulation_id ensures that it reaches the correct user
-    TODO obtain simulation and db via the authentication process
+        Level: depth within the simulation.  
+        Simulation_id - which simulation this refers to.  
+
+    Does not commit the change. Assumes this will be done by the caller.
     """
     match level:
         case 1:
@@ -34,7 +36,7 @@ def report(level, simulation_id, message, db: Session):
 
     user_message = " " * level + f"Level {level}: {message}"
     log_message = " " * level+colour + message + Fore.WHITE
-    logging.info(log_message)
+    # logging.info(log_message)
     entry = Trace(
         simulation_id=simulation_id,
         level=level,
@@ -42,4 +44,4 @@ def report(level, simulation_id, message, db: Session):
         message=user_message,
     )
     db.add(entry)
-    db.commit()
+    # db.commit()

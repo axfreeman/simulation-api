@@ -1,7 +1,4 @@
-# Login
-https://www.youtube.com/watch?v=xZnOoO3ImSY
-
-# API keys (not used in this version)
+# API keys 
 https://joshdimella.com/blog/adding-api-key-auth-to-fast-api#step-4-test-and-documentation  
 https://timberry.dev/posts/fastapi-with-apikeys/ 
 

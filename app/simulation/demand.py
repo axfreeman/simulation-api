@@ -21,27 +21,27 @@ from ..models import Class_stock, Commodity,Industry, Industry_stock,SocialClass
 from app.logging import report
 from sqlalchemy.orm import Session
 
-def initialise_demand(db: Session,simulation: Simulation):
+def initialise_demand(session: Session,simulation: Simulation):
     """Set demand to zero for all commodities and stocks, prior to
     recalculating total demand."""
 
-    report(1,simulation.id, "INITIALISING DEMAND FOR COMMODITIES AND STOCKS",db)
-    cquery = db.query(Commodity).where(Commodity.simulation_id==simulation.id)
+    report(1,simulation.id, "INITIALISING DEMAND FOR COMMODITIES AND STOCKS",session)
+    cquery = session.query(Commodity).where(Commodity.simulation_id==simulation.id)
     for c in cquery:
-        report(2,simulation.id,f"Initialising demand for commodity {c.name}",db)
-        db.add(c)
+        report(2,simulation.id,f"Initialising demand for commodity {c.name}",session)
+        session.add(c)
         c.demand=0
-    squery = db.query(Industry_stock).where(Industry_stock.simulation_id==simulation.id)
+    squery = session.query(Industry_stock).where(Industry_stock.simulation_id==simulation.id)
     for s in squery:
-        report(2,simulation.id,f"Initialising demand for industry stock {s.name}",db)
-        db.add(s)
+        report(2,simulation.id,f"Initialising demand for industry stock {s.name}",session)
+        session.add(s)
         s.demand=0
-    squery = db.query(Class_stock).where(Class_stock.simulation_id==simulation.id)
+    squery = session.query(Class_stock).where(Class_stock.simulation_id==simulation.id)
     for s in squery:
-        report(2,simulation.id,f"Initialising demand for class stock {s.name}",db)
-        db.add(s)
+        report(2,simulation.id,f"Initialising demand for class stock {s.name}",session)
+        session.add(s)
         s.demand=0
-    db.commit()
+    session.commit()
 
 def industry_demand(db:Session,simulation:Simulation):
     """Tell each industry to set demand for each of its productive stocks."""
