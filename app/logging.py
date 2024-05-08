@@ -34,7 +34,7 @@ def report(level, simulation_id, message, db: Session):
 
     user_message = " " * level + f"Level {level}: {message}"
     log_message = " " * level+colour + message + Fore.WHITE
-    logging.info(log_message)
+    # logging.info(log_message)
     entry = Trace(
         simulation_id=simulation_id,
         level=level,
