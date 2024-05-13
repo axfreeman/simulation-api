@@ -50,7 +50,7 @@ def get_simulation(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='This simulation does not exist')
     return simulation
 
-@router.get("/current",response_model=SimulationBase)
+@router.get("/current",response_model=List[SimulationBase])
 def get_current_user_simulation(
     session: Session = Depends (get_session), 
     u:User=Security(get_api_key),    
@@ -63,10 +63,10 @@ def get_current_user_simulation(
         Raise httpException otherwise
     """
     logger.info(f"User {u.username} requested simulation {u.current_simulation_id}")
-    simulation:Simulation=session.query(Simulation).where(Simulation.id==u.current_simulation_id).first()
-    if simulation is None:
+    simulations:Simulation=session.query(Simulation).where(Simulation.id==u.current_simulation_id)
+    if simulations is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='This user has no simulations')
-    return simulation
+    return simulations
 
 
 # @router.get("/delete/{id}")
