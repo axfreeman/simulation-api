@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 from .database import Base, engine
 
 from .routers import (
@@ -19,6 +20,10 @@ app=FastAPI()
 users = []
 
 Base.metadata.create_all(bind=engine)
+
+@app.get("/")
+def reroute():
+    return RedirectResponse(url="/docs", status_code=303) 
 
 app.include_router(actions.router)
 app.include_router(admin.router)
