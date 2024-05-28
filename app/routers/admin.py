@@ -103,7 +103,7 @@ def lock_user(
       If user is not locked, generate and send an apikey with status code 200  [NB IS THIS NEEDED?].  
       If user is locked, respond with status code 409).  
     """
-    logger.info(f"request to lock user called {username}")
+    logger.info(f"request to lock user {username}")
     # Find out if the user exists.  
     user:User = session.query(User).where(User.username==username).first()
     print(f"User details follow:\n")
@@ -131,7 +131,7 @@ def unlock_user(
       If user is not locked, send a message and status code 204.    
       If user is locked, unlock it and return status code 200.  
     """
-    logger.info(f"request to lock user called {username}")
+    logger.info(f"request to unlock user {username}")
     # Find out if the user exists.  
     user = session.query(User).where(User.username==username).first()
     if user is None:
