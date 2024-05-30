@@ -1,5 +1,6 @@
 from fastapi import Depends, APIRouter, Security, status
 from sqlalchemy.orm import Session
+from app.routers.simulation import delete_simulation
 from app.schemas import ServerMessage
 from app.simulation.consumption import consume
 from ..authorization.auth import get_api_key
@@ -195,10 +196,10 @@ def investHandler(
 @router.get("/reset")
 def get_json(session: Session = Depends(get_session)):
     """
-    Reloads all tables in the simulation from json fixtures.  
-    Logs out all users and sets their current simulation to 0.  
-    TODO this action should only be available to the admin 
-    since it reinitialises everything.
+    Reloads all tables in the simulation from json fixtures.
+
+        Logs out all users and sets their current simulation to 0.  
+        Should only be available to admin since it reinitialises everything.  
     """
     report(1,1,"RESETTING ENTIRE DATABASE",session)
     reload_table(session, Simulation, "static/simulations.json", True, 1)
@@ -211,3 +212,5 @@ def get_json(session: Session = Depends(get_session)):
     reload_table(session, Trace, "Trace table: no reload required", False, 1)
 
     return "Database reloaded"
+
+

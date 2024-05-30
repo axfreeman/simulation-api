@@ -4,12 +4,12 @@ from sqlalchemy import insert
 from ..models import Buyer, Class_stock, Industry_stock, Seller
 from app.logging import report
 
-def reload_table(db: Session, baseModel, filename: str, reload: bool, simulation_id:int):
+def reload_table(session: Session, baseModel, filename: str, reload: bool, simulation_id:int):
 
     """Initialise one table,specified by baseModel, from JSON fixture data specified by filename."""
     
-    report(2,simulation_id,f"Initialising table {filename}", db)
-    query = db.query(baseModel)
+    report(2,simulation_id,f"Initialising table {filename}", session)
+    query = session.query(baseModel)
     query.delete(synchronize_session=False)
     if reload:
         try:
@@ -17,8 +17,8 @@ def reload_table(db: Session, baseModel, filename: str, reload: bool, simulation
             jason = json.load(file)
             for item in jason:
                 new_object = baseModel(**item)
-                db.add(new_object)
-            db.commit()
+                session.add(new_object)
+            session.commit()
         except Exception as e:
             print(f"could not load because of exception {e}")
             print (f"trying to load ",item)
