@@ -26,13 +26,13 @@ def get_users_for_admin(
     u: User = Security(get_api_key),
     session:Session =Depends(get_session)
 )->List[User]:
-    """Provide an admin with a list of users.
+    """Provide an admin with a list of users.  
+    Backdoor access to global data via an API key.
     
-        Only the admin user has access to this.
-    
-        Exception: if the key is not valid
+        Only the admin user has access to this.  
+        Exception: if the key is not valid  
+        Exception: if the user is not admin  
 
-        Exception: if the user is not admin
     """
     if u.username!='admin':
         raise HTTPException(status_code=400, detail='Only admin can do this')
@@ -46,18 +46,14 @@ def get_user_for_admin(
     session:Session =Depends(get_session)
 )->User:
     """Provide an admin with the details of the user called username.
-    
     Backdoor access to global data via an API key.
         
         username: the name of the user.
-        
-        The API key must be the admin's key
-    
+        The API key must be the admin's key    
         Returns: authentication error if the key is not valid.
-
         Returns: not allowed error if requester is not the admin
-
         Returns: None if the user does not exist.
+
     """
     if u.username!="admin" and u.username!=username:
         raise HTTPException(status_code=400, detail='Non-admin user requested data on another user')
