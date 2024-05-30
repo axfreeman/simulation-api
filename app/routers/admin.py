@@ -2,15 +2,19 @@
 
 """
 from typing import List
+from fastapi import APIRouter, Depends, HTTPException, Security
+from sqlalchemy.orm import Session
+from fastapi.security import OAuth2PasswordRequestForm
+from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Security, status
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm
-from app.schemas import UserMessage, ServerMessage
+from ..schemas import UserMessage, ServerMessage
 from typing import Annotated
 from ..reporting.caplog import logger
 import logging
 
-from app.schemas import UserBase
+from ..schemas import UserBase
 from ..database import get_session
 from ..authorization.auth import get_api_key
 from ..models import User
