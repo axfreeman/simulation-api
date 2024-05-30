@@ -148,6 +148,6 @@ def delete_user_simulation(
     report(1,1,f"Deleting Simulations for user {u.username}",session)
     query:Simulation=session.query(Simulation).where(Simulation.username == u.username)
     for simulation in query:
-        delete_simulation(query.id)
+        delete_simulation(simulation.id)
     return {"message":f"Deleted all simulations of user {u.username}","statusCode":status.HTTP_200_OK}
         
