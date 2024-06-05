@@ -34,8 +34,6 @@ passlib==1.7.4
 pdoc3==0.10.0
 pipenv==2023.10.24
 platformdirs==3.11.0
-psycopg==3.1.17
-psycopg2==2.9.9
 pyasn1==0.5.1
 pycparser==2.21
 pydantic==2.5.3
