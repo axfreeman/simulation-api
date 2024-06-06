@@ -1,7 +1,7 @@
 [
   {
     "id": 1,
-    "name": "Simple Reproduction",
+    "name": "Simple Reproduction (SR)",
     "time_stamp": 0,
     "username": "admin",
     "state": "TEMPLATE",
@@ -17,11 +17,11 @@
   },
   {
     "id": 2,
-    "name": "SR with lower MELT",
+    "name": "SR with two periods per year",
     "time_stamp": 0,
     "username": "admin",
     "state": "TEMPLATE",
-    "periods_per_year": 1,
+    "periods_per_year": 2,
     "population_growth_rate": 1,
     "investment_ratio": 1,
     "labour_supply_response": "UNDEFINED",

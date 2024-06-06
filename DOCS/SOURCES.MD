@@ -8,3 +8,6 @@ https://codingislove.com/excel-json/
 https://www.c-amie.co.uk/technical/exploration-of-which-request-headers-you-need-should-and-cannot-set-when-using-msxml2-xmlhttp-microsoft-xmlhttp-and-msxml2-serverxmlhttp/
 
 
+# Deployment
+https://www.digitalocean.com/community/tutorials/nohup-command-in-linux
+
