@@ -9,7 +9,7 @@
 		"username": "guest",
 		"current_simulation_id": 0,
 		"api_key": "guestkey",
-		"is_locked": true
+		"is_locked": false
 	},
 	{
 		"username": "Zeus",
