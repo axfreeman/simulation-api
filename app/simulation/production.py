@@ -10,7 +10,10 @@ def produce(session:Session, simulation:Simulation):
     for ind in iquery:
         industry_produce(ind, session, simulation)
 
-def industry_produce(industry:Industry, db:Session, simulation:Simulation)->str:
+def industry_produce(
+        industry:Industry, 
+        session:Session, 
+        simulation:Simulation)->str:
     """Tell 'industry' to produce.
 
     Increase the size of self.sales_stock by self.output_scale.
@@ -33,53 +36,58 @@ def industry_produce(industry:Industry, db:Session, simulation:Simulation)->str:
     value-creating function can be assigned to any Social Class to study 
     the consequences of a theory which asserts that it provides a 'factor 
     of production' whether ficitious or not.
+
+        industry(Industry):
+            the industry that is producing
+
+        session(Session):
+            the sqlAlchemy session that will store the results
+
+        simulation(Simulation):
+            the simulation currently under way
     """
 
-    report(2, simulation.id, f"{industry.name} is producing", db)
-    sales_stock = industry.sales_stock(db)
-    db.add(sales_stock)
-    sc = sales_stock.commodity(db)
+    report(2, simulation.id, f"{industry.name} is producing", session)
+    sales_stock = industry.sales_stock(session)
+    session.add(sales_stock)
+    sales_commodity = sales_stock.commodity(session)
     report(3,simulation.id,
-        f"{sales_stock.name} of {sc.name} before production is {sales_stock.size} with value {sales_stock.value}",db,
+        f"{sales_stock.name} of {sales_commodity.name} before production is {sales_stock.size} with value {sales_stock.value}",session,
     )
 
-    productive_stocks_query = db.query(Industry_stock).filter(
+    productive_stocks_query = session.query(Industry_stock).filter(
         Industry_stock.simulation_id == simulation.id,
         Industry_stock.industry_id == industry.id,
         Industry_stock.usage_type == "Production",
     )
     for stock in productive_stocks_query:
-        db.add(stock)
-        commodity = stock.commodity(db)
-        report(4,simulation.id,
-            f"Processing '{stock.name}' with size {stock.size}, value {stock.value} and unit value {sc.unit_value}",db,
-        )
+        session.add(stock)
+        commodity = stock.commodity(session)
+        report(4,simulation.id,f"Processing productive input '{stock.name}' with size {stock.size} and value {stock.value}",session)
 
         # Evaluate the size and value contribution of this stock
         if commodity.name == "Labour Power":
             # Labour Power adds its magnitude, not its value
-            value_contribution=stock.flow_per_period(db)
+            value_contribution=stock.flow_per_period(session)
             stock.size -= value_contribution
             stock.value-=value_contribution*commodity.unit_value
             stock.price-= value_contribution*commodity.unit_price
-            report(4, simulation.id, f"Labour Power adds {value_contribution} and its size becomes {stock.size}", db)
+            report(4, simulation.id, f"{stock.name} creates value {value_contribution}", session)
         else:
-            value_contribution = stock.flow_per_period(db)* sc.unit_value
+            value_contribution = stock.flow_per_period(session)* sales_commodity.unit_value
             # Other productive stocks transfer their value, not their magnitude
             stock.value -= value_contribution
-            stock.size -=stock.flow_per_period(db)
-            stock.price-= stock.flow_per_period(db)*commodity.unit_price
-            report(4,simulation.id,
-                f"{stock.name} transfers value {value_contribution} at unit value {commodity.unit_value} and its size becomes {stock.size}",db,
-            )
-
+            stock.size -=stock.flow_per_period(session)
+            stock.price-= stock.flow_per_period(session)*commodity.unit_price
+            report(4,simulation.id,f"{stock.name} transfers value {value_contribution} at unit value {commodity.unit_value} ",session)
         sales_stock.value += value_contribution
-        sales_stock.size = industry.output_scale/simulation.periods_per_year
-        report(4, simulation.id, f"Sales value rises to {sales_stock.value}", db)
+        report(3, simulation.id, f"Sales value after inputs from {stock.name} is {sales_stock.value}", session)
+    # report(4, simulation.id, f"output scale is {industry.output_scale}", session) # Uncomment for more verbose diagnostics
+    sales_stock.size += industry.output_scale/simulation.periods_per_year
+    report(3, simulation.id, f"Sales value after production is {sales_stock.value} and size {sales_stock.size}", session)
+    
     # TODO If MELT is not 1, we have to account below for the value of money
     sales_stock.price=sales_stock.value
-    report(
-        3, simulation.id, f"Sales value has now become {sales_stock.value}", db
-    )
-    db.commit()
+    report(3, simulation.id, f"Sales price after production is {sales_stock.price}", session)
+    session.commit()
 
