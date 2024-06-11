@@ -46,5 +46,29 @@
 		"current_simulation_id": 0,
 		"api_key": "Apollokey",
 		"is_locked": false
+	},
+	{
+		"username": "Ares",
+		"current_simulation_id": 0,
+		"api_key": "Areskey",
+		"is_locked": false
+	},
+	{
+		"username": "Hephaestus",
+		"current_simulation_id": 0,
+		"api_key": "Hephaestuskey",
+		"is_locked": false
+	},
+	{
+		"username": "Hermes",
+		"current_simulation_id": 0,
+		"api_key": "Hermeskey",
+		"is_locked": false
+	},
+	{
+		"username": "Hestia",
+		"current_simulation_id": 0,
+		"api_key": "Hestiakey",
+		"is_locked": false
 	}
 ]

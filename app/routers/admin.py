@@ -72,10 +72,10 @@ def register(
         because we haven't customised the form as yet)
 
         Return status 400 for malformed form.
-        
         Return status 400 if user already exists.
-        
         Return status 201 if the user is registered.
+
+        TODO this is not currently in use. Maybe remove it.
     """
     if u.username!='admin':
         raise HTTPException(status_code=400, detail='Only admin can do this')
@@ -99,11 +99,14 @@ def lock_user(
     """
     Lock a username to restrict access to it to one player.
 
-        {username} is the name of the user to lock.  
+        username (string):
+            the name of the user to lock
+            
         If there is no such user, respond with status code 400.   
+
         If user is not locked, generate and send an apikey with status code 200  [NB IS THIS NEEDED?].  
+
         If user is locked, respond with status code 409).  
-        
     """
     logger.info(f"request to lock user  {username}")
     # Find out if the user exists.  
@@ -126,11 +129,16 @@ def unlock_user(
     u: User = Security(get_api_key),
     session:Session =Depends(get_session)
 )->ServerMessage:
-    """Unlock a username to allow other players to use it.
+    """
+    Unlock a username to allow other players to use it.
 
-      {username} is the name of the user to unlock.  
+      username(string):
+          the name of the user to unlock
+
       If there is no such user, send a failure (status code 400?).   
+
       If user is not locked, send a message and status code 204.    
+
       If user is locked, unlock it and return status code 200.  
     """
     logger.info(f"request to unlock user {username}")
