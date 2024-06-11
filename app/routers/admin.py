@@ -101,7 +101,7 @@ def lock_user(
 
         username (string):
             the name of the user to lock
-            
+
         If there is no such user, respond with status code 400.   
 
         If user is not locked, generate and send an apikey with status code 200  [NB IS THIS NEEDED?].  
@@ -130,16 +130,16 @@ def unlock_user(
     session:Session =Depends(get_session)
 )->ServerMessage:
     """
-    Unlock a username to allow other players to use it.
+    Unlock a username so other players can use it.
 
-      username(string):
-          the name of the user to unlock
+        username(string):
+            the name of the user to unlock
 
-      If there is no such user, send a failure (status code 400?).   
+        If there is no such user, send a failure (status code 400?).   
 
-      If user is not locked, send a message and status code 204.    
+        If user is not locked, send a message and status code 204.    
 
-      If user is locked, unlock it and return status code 200.  
+        If user is locked, unlock it and return status code 200.  
     """
     logger.info(f"request to unlock user {username}")
     # Find out if the user exists.  
