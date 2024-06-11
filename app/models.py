@@ -6,7 +6,7 @@ import typing
 from fastapi import Depends, HTTPException
 from sqlalchemy import Column, ForeignKey, Integer, String, Float, Boolean
 from sqlalchemy.orm import relationship, Session
-from .database import Base, get_session
+from .database import Base
 
 
 Industry_stock = typing.NewType("Industry_stock", None)
@@ -410,10 +410,11 @@ class Class_stock(Base):
         else:
             return 0.0
 
-    def flow_per_period(self, db: Session) -> float:
-        return self.annual_flow_rate(db) / self.simulation(db).periods_per_year
+    def flow_per_period(self, session: Session) -> float:
+        print(f"anuual flow rate of {self.name} is {self.annual_flow_rate(session)} and periods per year is {self.simulation(session).periods_per_year}")
+        return self.annual_flow_rate(session) / self.simulation(session).periods_per_year
 
-    def standard_stock(self, db: Session) -> float:
+    def standard_stock(self, session: Session) -> float:
         """The size of the normal stock which a class must maintain in order to 
         exist at its current population level.
 
@@ -425,7 +426,7 @@ class Class_stock(Base):
         whilst too little money has results which we wish to investigate.
         """
         if self.usage_type == "Consumption":
-            return self.annual_flow_rate(db) * self.commodity().turnover_time
+            return self.annual_flow_rate(session) * self.commodity().turnover_time
         else:
             return 0.0
 

@@ -4,48 +4,52 @@ from sqlalchemy.orm import Session
 
 """Helper functions for use in all parts of the simulation."""
 
-def revalue_commodities(db:Session, simulation:Simulation):
-  """Calculate the size, value and price of all commodities from stocks
-  of them.
-
+def revalue_commodities(
+      session:Session, 
+      simulation:Simulation):
+  """Calculate the size, value and price of all commodities from their stocks
   Recalculate unit values and unit prices on this basis.
 
   Normally, 'revalue stocks' should be called after this, because a change
   in the unit value and/or price will affect all stocks of it.
+
+      session(Session):
+          The sqlAlchemy session which will commit the commodity to storage
+
+      simulation(Simulation):
+          The simulation to which this calculation refers
   """
 
-  report(1,simulation.id,"CALCULATE THE SIZE, VALUE AND PRICE OF ALL COMMODITIES",db)
-  commodities=db.query(Commodity).where(Commodity.simulation_id==simulation.id)
+  report(1,simulation.id,"CALCULATE THE SIZE, VALUE AND PRICE OF ALL COMMODITIES",session)
+  commodities=session.query(Commodity).where(Commodity.simulation_id==simulation.id)
   for commodity in commodities:
       commodity.total_value=0
       commodity.total_price=0
       commodity.size=0
-      db.add(commodity)
+      session.add(commodity)
 
 # Industry stocks
-            
-      istocks=db.query(Industry_stock).where(Industry_stock.commodity_id==commodity.id)
+      istocks=session.query(Industry_stock).where(Industry_stock.commodity_id==commodity.id)
       for stock in istocks:
           commodity.total_value+=stock.value
           commodity.total_price+=stock.price
           commodity.size+=stock.size
-      db.commit() # TODO is this necessary at this time?
 
 # Class stocks
-
-      cstocks=db.query(Class_stock).where(Class_stock.commodity_id==commodity.id)
+      cstocks=session.query(Class_stock).where(Class_stock.commodity_id==commodity.id)
       for stock in cstocks:
           commodity.total_value+=stock.value
           commodity.total_price+=stock.price
           commodity.size+=stock.size
-  db.commit() # TODO is this necessary at this time?
+  session.commit()
 
   for commodity in commodities:
       if commodity.size>0:
         commodity.unit_price=commodity.total_price/commodity.size
         commodity.unit_value=commodity.total_price/commodity.size
-        report(2,simulation.id,f"Setting the value of commodity {commodity.name} to {commodity.total_value} and its price to {commodity.total_price}",db)
-        report(2,simulation.id,f"Setting the unit value of commodity {commodity.name} to {commodity.unit_value} and its unit price to {commodity.unit_price}",db)
+        report(2,simulation.id,f"Setting the size of commodity {commodity.name} to {commodity.size}",session)
+        report(2,simulation.id,f"Setting the value of commodity {commodity.name} to {commodity.total_value} and its price to {commodity.total_price}",session)
+        report(2,simulation.id,f"Setting the unit value of commodity {commodity.name} to {commodity.unit_value} and its unit price to {commodity.unit_price}",session)
 
 def revalue_stocks(db:Session, simulation:Simulation):
   """ Interrogate all stocks.
