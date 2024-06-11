@@ -23,21 +23,29 @@ def revalue_commodities(
   report(1,simulation.id,"CALCULATE THE SIZE, VALUE AND PRICE OF ALL COMMODITIES",session)
   commodities=session.query(Commodity).where(Commodity.simulation_id==simulation.id)
   for commodity in commodities:
+      session.add(commodity)
       commodity.total_value=0
       commodity.total_price=0
       commodity.size=0
-      session.add(commodity)
 
-# Industry stocks
+# Calculate the contribution of all stocks belonging to industries
       istocks=session.query(Industry_stock).where(Industry_stock.commodity_id==commodity.id)
       for stock in istocks:
+          report(2,simulation.id,f"Processing the industrial stock called {stock.name}")
+          report(3,simulation.id,f"Adding {stock.size} to {commodity.name} bringing its size to {commodity.size}",session)
+          report(3,simulation.id,f"Adding {stock.value} to {commodity.name} bringing its value to {commodity.value}",session)
+          report(3,simulation.id,f"Adding {stock.price} to {commodity.name} bringing its price to {commodity.price}",session)
           commodity.total_value+=stock.value
           commodity.total_price+=stock.price
           commodity.size+=stock.size
 
-# Class stocks
+# Calculate the contribution of all stocks belonging to classes
       cstocks=session.query(Class_stock).where(Class_stock.commodity_id==commodity.id)
       for stock in cstocks:
+          report(2,simulation.id,f"Processing the class stock called {stock.name}")
+          report(3,simulation.id,f"Adding {stock.size} to {commodity.name} bringing its size to {commodity.size}",session)
+          report(3,simulation.id,f"Adding {stock.value} to {commodity.name} bringing its value to {commodity.value}",session)
+          report(3,simulation.id,f"Adding {stock.price} to {commodity.name} bringing its price to {commodity.price}",session)
           commodity.total_value+=stock.value
           commodity.total_price+=stock.price
           commodity.size+=stock.size
@@ -48,81 +56,120 @@ def revalue_commodities(
         commodity.unit_price=commodity.total_price/commodity.size
         commodity.unit_value=commodity.total_price/commodity.size
         report(2,simulation.id,f"Setting the size of commodity {commodity.name} to {commodity.size}",session)
-        report(2,simulation.id,f"Setting the value of commodity {commodity.name} to {commodity.total_value} and its price to {commodity.total_price}",session)
         report(2,simulation.id,f"Setting the unit value of commodity {commodity.name} to {commodity.unit_value} and its unit price to {commodity.unit_price}",session)
 
-def revalue_stocks(db:Session, simulation:Simulation):
-  """ Interrogate all stocks.
+def revalue_stocks(
+      session:Session, 
+      simulation:Simulation):
+  """ Revalue all stocks.
   Set value from unit value and size of their commodity
   Set price from unit price and size of their commodity
+
+      session(Session):
+          the sqlAlchemy session that will store the revalued stocks
+
+      simulation(Simulation):
+          the simulation that is currently being processed    
   """
-  report(1,simulation.id,"RESETTING PRICES AND VALUES",db)
+  report(1,simulation.id,"RESETTING PRICES AND VALUES",session)
 
 # Industry stocks
 
-  istocks=db.query(Industry_stock).where(Industry_stock.simulation_id==simulation.id)
-  report(2,simulation.id,"Revaluing industry stocks",db)
+  istocks=session.query(Industry_stock).where(Industry_stock.simulation_id==simulation.id)
+  report(2,simulation.id,"Revaluing industry stocks",session)
   for stock in istocks:
-      commodity=db.query(Commodity).where(Commodity.id == stock.commodity_id).first()
-      db.add(stock)
+      commodity=session.query(Commodity).where(Commodity.id == stock.commodity_id).first()
+      session.add(stock)
       stock.value=stock.size*commodity.unit_value
       stock.price=stock.size*commodity.unit_price
-      report(3,simulation.id,f"Setting the value of the stock [{stock.name}] to {stock.value} and its price to {stock.price}",db)
-  db.commit()
+      report(3,simulation.id,f"Setting the value of the stock [{stock.name}] to {stock.value} and its price to {stock.price}",session)
+  session.commit()
 
 # Class stocks
 
-  cstocks=db.query(Class_stock).where(Class_stock.simulation_id==simulation.id)
-  report(2,simulation.id,"Revaluing class stocks",db)
+  cstocks=session.query(Class_stock).where(Class_stock.simulation_id==simulation.id)
+  report(2,simulation.id,"Revaluing class stocks",session)
   for stock in cstocks:
-      commodity=db.query(Commodity).where(Commodity.id == stock.commodity_id).first()
-      db.add(stock)
+      commodity=session.query(Commodity).where(Commodity.id == stock.commodity_id).first()
+      session.add(stock)
       stock.value=stock.size*commodity.unit_value
       stock.price=stock.size*commodity.unit_price
-      report(3,simulation.id,f"Setting the value of the stock [{stock.name}] to {stock.value} and its price to {stock.price}",db)
-  db.commit()
+      report(3,simulation.id,f"Setting the value of the stock [{stock.name}] to {stock.value} and its price to {stock.price}",session)
+  session.commit()
 
-def calculate_capital(db:Session, simulation:Simulation,industry:Industry)->float:
-    """
-    Calculate the initial capital of the given industry and return it
+# TODO this should be a method of the Industry object
+def capital(
+      session:Session, 
+      simulation:Simulation,
+      industry:Industry)->float:
+    """Calculate the initial capital of the given industry
     This is equal to the sum of the prices of all its stocks
     Assumes that the price of all these stocks has been set
+
+      session(Session):
+          the sqlAlchemy session that will store the revalued stocks
+
+      simulation(Simulation):
+          the simulation that is currently being processed    
+
+      industry(Industry):
+          the industry whose capital is calculated
+
+      returns(float):
+          the capital of the industry concerned
     """
-    report(2,simulation.id,f"Calculating the capital of {industry.name}",db)
+    report(2,simulation.id,f"Calculating the capital of {industry.name}",session)
     result=0
-    istocks=db.query(Industry_stock).where(Industry_stock.industry_id==industry.id)
+    istocks=session.query(Industry_stock).where(Industry_stock.industry_id==industry.id)
     for stock in istocks:
-        report(3,simulation.id,f"Industry stock [{stock.name}] is adding {stock.price} to the capital of {industry.name}",db)
+        report(3,simulation.id,f"Industry stock [{stock.name}] is adding {stock.price} to the capital of {industry.name}",session)
         result+=stock.price
     return result
 
-def calculate_initial_capitals(db:Session, simulation:Simulation):
+def calculate_initial_capitals(
+      session:Session, 
+      simulation:Simulation):
     """
-    Calculate the initial capital of the given industry and return it
+    Calculate the initial capital of the given industry and store it.
     This is equal to the sum of the prices of all its stocks
     Assumes that the price of all these stocks has been set correctly
-    """
-    report(1,simulation.id,f"CALCULATING INITIAL CAPITAL for simulation {simulation.id}",db)
-    industries=db.query(Industry).where(Industry.simulation_id==simulation.id)
-    for industry in industries:
-      report(2,simulation.id,f"Asking for the capital of {industry.name}",db)      
-      db.add(industry)
-      industry.initial_capital=calculate_capital(db,simulation,industry)
-    db.commit()
+      session(Session):
+          the sqlAlchemy session that will store the revalued stocks
 
-def calculate_current_capitals(db:Session, simulation:Simulation):
+      simulation(Simulation):
+          the simulation that is currently being processed    
     """
-    Calculate the current capital of all industries in the simulation.
-    Set the profit and the profit rate of each industry.
-    Assumes that the price of all stocks has been set correctly.
-    """
-    report(1,simulation.id,"CALCULATING CURRENT CAPITAL",db)
-    industries=db.query(Industry).where(Industry.simulation_id==simulation.id)
+    report(1,simulation.id,f"CALCULATING INITIAL CAPITAL for simulation {simulation.id}",session)
+    industries=session.query(Industry).where(Industry.simulation_id==simulation.id)
     for industry in industries:
-      db.add(industry)
-      industry.current_capital=calculate_capital(db,simulation,industry)
+      report(2,simulation.id,f"Asking for the capital of {industry.name}",session)      
+      session.add(industry)
+      industry.initial_capital=capital(session,simulation,industry)
+    session.commit()
+
+def calculate_current_capitals(
+      session:Session, 
+      simulation:Simulation):
+    """
+    Calculate the current capital of all industries in the simulation and store it.
+    Set the profit and the profit rate of each industry.
+
+    Assumes that the price of all stocks has been set correctly.
+
+      session(Session):
+          the sqlAlchemy session that will store the revalued stocks
+
+      simulation(Simulation):
+          the simulation that is currently being processed    
+
+    """
+    report(1,simulation.id,"CALCULATING CURRENT CAPITAL",session)
+    industries=session.query(Industry).where(Industry.simulation_id==simulation.id)
+    for industry in industries:
+      session.add(industry)
+      industry.current_capital=capital(session,simulation,industry)
       industry.profit=industry.current_capital-industry.initial_capital
       industry.profit_rate=industry.profit/industry.initial_capital
-    db.commit()
+    session.commit()
 
 
