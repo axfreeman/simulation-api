@@ -31,32 +31,32 @@ def revalue_commodities(
 # Calculate the contribution of all stocks belonging to industries
       istocks=session.query(Industry_stock).where(Industry_stock.commodity_id==commodity.id)
       for stock in istocks:
-          report(2,simulation.id,f"Processing the industrial stock called {stock.name}")
-          report(3,simulation.id,f"Adding {stock.size} to {commodity.name} bringing its size to {commodity.size}",session)
-          report(3,simulation.id,f"Adding {stock.value} to {commodity.name} bringing its value to {commodity.value}",session)
-          report(3,simulation.id,f"Adding {stock.price} to {commodity.name} bringing its price to {commodity.price}",session)
+          report(2,simulation.id,f"Processing the industrial stock called {stock.name}",session)
           commodity.total_value+=stock.value
           commodity.total_price+=stock.price
           commodity.size+=stock.size
+          report(3,simulation.id,f"Adding {stock.size} to the size of {commodity.name} bringing it to {commodity.size}",session)
+          report(3,simulation.id,f"Adding {stock.value} to the value of {commodity.name} bringing it to {commodity.total_value}",session)
+          report(3,simulation.id,f"Adding {stock.price} to the price of {commodity.name} bringing it to {commodity.total_price}",session)
 
 # Calculate the contribution of all stocks belonging to classes
       cstocks=session.query(Class_stock).where(Class_stock.commodity_id==commodity.id)
       for stock in cstocks:
-          report(2,simulation.id,f"Processing the class stock called {stock.name}")
-          report(3,simulation.id,f"Adding {stock.size} to {commodity.name} bringing its size to {commodity.size}",session)
-          report(3,simulation.id,f"Adding {stock.value} to {commodity.name} bringing its value to {commodity.value}",session)
-          report(3,simulation.id,f"Adding {stock.price} to {commodity.name} bringing its price to {commodity.price}",session)
+          report(2,simulation.id,f"Processing the class stock called {stock.name}",session)
           commodity.total_value+=stock.value
           commodity.total_price+=stock.price
           commodity.size+=stock.size
+          report(3,simulation.id,f"Adding {stock.size} to the size of {commodity.name} bringing it to {commodity.size}",session)
+          report(3,simulation.id,f"Adding {stock.value} to the value of {commodity.name} bringing it to {commodity.total_value}",session)
+          report(3,simulation.id,f"Adding {stock.price} to the price of {commodity.name} bringing it to {commodity.total_price}",session)
   session.commit()
 
   for commodity in commodities:
       if commodity.size>0:
+        report(2,simulation.id,f"Commodity {commodity.name} has size {commodity.size}, total value {commodity.total_value} and total price {commodity.total_price}",session)
+        commodity.unit_value=commodity.total_value/commodity.size
         commodity.unit_price=commodity.total_price/commodity.size
-        commodity.unit_value=commodity.total_price/commodity.size
-        report(2,simulation.id,f"Setting the size of commodity {commodity.name} to {commodity.size}",session)
-        report(2,simulation.id,f"Setting the unit value of commodity {commodity.name} to {commodity.unit_value} and its unit price to {commodity.unit_price}",session)
+        report(3,simulation.id,f"Setting its unit value to {commodity.unit_value} and its unit price to {commodity.unit_price}",session)
 
 def revalue_stocks(
       session:Session, 

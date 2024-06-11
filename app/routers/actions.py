@@ -169,20 +169,20 @@ def investHandler(
     """Handles calls to the 'Invest' action then resets simulation state
     to restart the next circuit.
 
-    Instructs every industry to assess whether it has a money surplus
-    over and above what would be needed to produce at the same level as
-    it has just been doing.
+        Instructs every industry to assess whether it has a money surplus above
+        what would be needed to produce at the same level as it has been doing.
 
-    If so, attempt to raise the output_scale by the minimum of what
-    this money will pay for, and the growth rate.
+        If so, attempt to raise the output_scale by the minimum of what this 
+        money will pay for, and the growth rate.
 
-    Note that if the means are not available to make this possible, in
-    the demand stage of the next circuit, output will be scaled down.
+        Note that if the means are not available to make this possible, in the 
+        demand stage of the next circuit, output will be scaled down.
 
-    This is only one of a number of possible algorithms.
+        This is only one of a number of possible algorithms.
     
-        If there is no current simulation, returns None
-        Otherwise, return success message
+        returns(str):
+            If there is no current simulation, None
+            Otherwise success message
     """
     try:
         simulation:Simulation=u.current_simulation(session)

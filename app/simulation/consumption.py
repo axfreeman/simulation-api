@@ -55,7 +55,7 @@ def class_consume(
         stock.size -=stock.flow_per_period(session)  # eat according to defined consumption standards
         stock.price-=stock.flow_per_period(session)*commodity.unit_price
         stock.value-=stock.flow_per_period(session)*commodity.unit_value
-        report(3,simulation.id,f"Consumption stock {stock.name} now has size {stock.size} and value {stock.value}",session)
+        report(3,simulation.id,f"Consumption stock {stock.name} now has size {stock.size}, value {stock.value} and price {stock.price}",session)
     
     # Currently no population dynamics and no differential labour intensity
     # Capitalists are assumed here (as per Cheng et al.) to supply services
@@ -66,8 +66,9 @@ def class_consume(
     #
     # TODO We also do not calculate the unit value of factors, but we should
     report(3,simulation.id,f"Replenishing the sales stock {sales_stock.name} of {social_class.name} whose population is {social_class.population}",session)
-    report(3,simulation.id,f"Its size before replenishment is {sales_stock.size} with value {sales_stock.value}",session)
+    report(3,simulation.id,f"Its size before replenishment is {sales_stock.size} with value {sales_stock.value} and price {sales_stock.price}",session)
     sales_stock.size += (social_class.population/simulation.periods_per_year)
     sales_stock.value += (social_class.population/simulation.periods_per_year)*sales_commodity.unit_value
-    report(3,simulation.id,f"Its size is now {sales_stock.size} with value {sales_stock.value}",session)
+    sales_stock.price += (social_class.population/simulation.periods_per_year)*sales_commodity.unit_price
+    report(3,simulation.id,f"Its size is now {sales_stock.size}, value {sales_stock.value} and price {sales_stock.price}",session)
     session.commit()
